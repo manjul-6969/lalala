@@ -1,187 +1,154 @@
-import { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Pressable, Switch, ActivityIndicator } from 'react-native';
-import { Camera, Image, TriangleAlert as AlertTriangle, MapPin, User, Lock, Send, ArrowLeft } from 'lucide-react-native';
-import { Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, Pressable, Platform } from 'react-native';
+import { Camera, MapPin, Shield, AlertTriangle } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { Colors } from '@/constants/Colors';
+import { router } from 'expo-router';
+
+const INCIDENT_TYPES = [
+  {
+    id: 'extortion',
+    label: 'Cash Extortion',
+    icon: AlertTriangle,
+    color: Colors.danger[600],
+  },
+  {
+    id: 'threat',
+    label: 'Threat',
+    icon: Shield,
+    color: Colors.warning[600],
+  },
+  {
+    id: 'business',
+    label: 'Business',
+    icon: AlertTriangle,
+    color: Colors.primary[600],
+  },
+  {
+    id: 'transport',
+    label: 'Transport',
+    icon: AlertTriangle,
+    color: Colors.success[600],
+  },
+];
 
 export default function ReportScreen() {
-  const [incidentType, setIncidentType] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [location, setLocation] = useState<string>('');
-  
-  const descriptionRef = useRef<TextInput>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const incidentTypes = [
-    'Cash Extortion',
-    'Threat & Intimidation',
-    'Business Targeting',
-    'Transport Extortion',
-    'Other',
-  ];
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({});
+        const address = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+        
+        if (address[0]) {
+          const { street, city, region } = address[0];
+          setLocation(`${street}, ${city}, ${region}`);
+        }
+      }
+    })();
+  }, []);
 
-  const handleSubmit = () => {
-    if (!incidentType || !description) {
-      alert('Please fill in all required fields');
+  const handleSubmit = async () => {
+    if (!selectedType) {
+      alert('Please select an incident type');
       return;
     }
-    
+
     setIsSubmitting(true);
     
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      setIncidentType('');
-      setDescription('');
-      setLocation('');
-      alert('Your report has been submitted anonymously. Thank you for helping keep the community safe.');
+      router.push('/map');
+      alert('Report submitted successfully');
     }, 1500);
   };
-
-  useEffect(() => {
-    // Simulate getting location
-    setTimeout(() => {
-      setLocation('Dhaka, Bangladesh');
-    }, 1000);
-  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Report Incident</Text>
-        <Text style={styles.subtitle}>
-          Help keep your community safe by reporting extortion incidents
-        </Text>
+        {location && (
+          <View style={styles.locationContainer}>
+            <MapPin size={16} color={Colors.primary[100]} />
+            <Text style={styles.location}>{location}</Text>
+          </View>
+        )}
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Type of Incident</Text>
-          <View style={styles.incidentTypes}>
-            {incidentTypes.map((type) => (
-              <Pressable
-                key={type}
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <Text style={styles.sectionTitle}>What type of incident?</Text>
+        
+        <View style={styles.typeGrid}>
+          {INCIDENT_TYPES.map((type) => (
+            <Pressable
+              key={type.id}
+              style={[
+                styles.typeCard,
+                selectedType === type.id && styles.selectedType,
+              ]}
+              onPress={() => setSelectedType(type.id)}
+            >
+              <View
                 style={[
-                  styles.typeButton,
-                  incidentType === type && styles.selectedType,
+                  styles.iconContainer,
+                  { backgroundColor: type.color },
                 ]}
-                onPress={() => setIncidentType(type)}
               >
-                <Text
-                  style={[
-                    styles.typeText,
-                    incidentType === type && styles.selectedTypeText,
-                  ]}
-                >
-                  {type}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                <type.icon size={24} color={Colors.white} />
+              </View>
+              <Text style={styles.typeLabel}>{type.label}</Text>
+            </Pressable>
+          ))}
         </View>
 
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.sectionSubtitle}>
-            Provide details about what happened
-          </Text>
-          <TextInput
-            ref={descriptionRef}
-            style={styles.textInput}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Describe the incident..."
-            placeholderTextColor={Colors.neutral[400]}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Location</Text>
-          <View style={styles.locationContainer}>
-            <MapPin size={20} color={Colors.primary[600]} style={styles.locationIcon} />
-            <Text style={styles.locationText}>
-              {location || 'Fetching your location...'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Evidence (Optional)</Text>
-          <Text style={styles.sectionSubtitle}>
-            Add photos or videos of the incident if available
-          </Text>
-          <View style={styles.evidenceButtons}>
-            <Pressable style={styles.evidenceButton}>
+        <View style={styles.mediaSection}>
+          <Text style={styles.sectionTitle}>Add Photos/Videos (Optional)</Text>
+          <View style={styles.mediaButtons}>
+            <Pressable
+              style={styles.mediaButton}
+              onPress={async () => {
+                if (Platform.OS !== 'web') {
+                  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                  if (status === 'granted') {
+                    const result = await ImagePicker.launchCameraAsync({
+                      mediaTypes: ImagePicker.MediaTypeOptions.All,
+                      quality: 1,
+                    });
+                    if (!result.canceled) {
+                      // Handle image
+                    }
+                  }
+                }
+              }}
+            >
               <Camera size={24} color={Colors.primary[600]} />
-              <Text style={styles.evidenceButtonText}>Take Photo</Text>
-            </Pressable>
-            <Pressable style={styles.evidenceButton}>
-              <Image size={24} color={Colors.primary[600]} />
-              <Text style={styles.evidenceButtonText}>Upload Photo</Text>
+              <Text style={styles.mediaButtonText}>Take Photo</Text>
             </Pressable>
           </View>
-        </View>
-
-        <View style={styles.formSection}>
-          <View style={styles.anonymousContainer}>
-            <View>
-              <Text style={styles.anonymousTitle}>Report Anonymously</Text>
-              <Text style={styles.anonymousDescription}>
-                Your identity will be protected
-              </Text>
-            </View>
-            <Switch
-              value={isAnonymous}
-              onValueChange={setIsAnonymous}
-              trackColor={{ false: Colors.neutral[300], true: Colors.primary[300] }}
-              thumbColor={isAnonymous ? Colors.primary[600] : Colors.neutral[100]}
-              ios_backgroundColor={Colors.neutral[300]}
-            />
-          </View>
-
-          {isAnonymous ? (
-            <View style={styles.anonymousIndicator}>
-              <Lock size={16} color={Colors.primary[600]} />
-              <Text style={styles.anonymousIndicatorText}>
-                Your report will be anonymous
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.anonymousIndicator}>
-              <User size={16} color={Colors.neutral[600]} />
-              <Text style={styles.anonymousIndicatorText}>
-                Your identity will be shared with authorities
-              </Text>
-            </View>
-          )}
         </View>
 
         <Pressable
-          style={({ pressed }) => [
+          style={[
             styles.submitButton,
-            pressed && styles.submitButtonPressed,
             isSubmitting && styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <ActivityIndicator color={Colors.white} size="small" />
-          ) : (
-            <>
-              <Send size={18} color={Colors.white} style={styles.submitIcon} />
-              <Text style={styles.submitButtonText}>Submit Report</Text>
-            </>
-          )}
+          <Shield size={20} color={Colors.white} />
+          <Text style={styles.submitButtonText}>
+            {isSubmitting ? 'Submitting...' : 'Submit Report'}
+          </Text>
         </Pressable>
-
-        <Text style={styles.disclaimer}>
-          All reports are reviewed by our team. False reporting is a criminal offense.
-        </Text>
       </ScrollView>
     </View>
   );
@@ -193,180 +160,106 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   header: {
-    paddingHorizontal: 16,
+    backgroundColor: Colors.primary[600],
     paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: Colors.primary[700],
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   title: {
     fontFamily: 'Roboto-Bold',
-    fontSize: 24,
+    fontSize: 28,
     color: Colors.white,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 14,
-    color: Colors.primary[100],
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  formSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontFamily: 'Roboto-Bold',
-    fontSize: 16,
-    color: Colors.neutral[800],
     marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 14,
-    color: Colors.neutral[600],
-    marginBottom: 12,
-  },
-  incidentTypes: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  typeButton: {
-    backgroundColor: Colors.neutral[100],
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  selectedType: {
-    backgroundColor: Colors.primary[600],
-  },
-  typeText: {
-    fontFamily: 'Roboto-Medium',
-    fontSize: 14,
-    color: Colors.neutral[700],
-  },
-  selectedTypeText: {
-    color: Colors.white,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: Colors.neutral[300],
-    borderRadius: 8,
-    padding: 12,
-    fontFamily: 'Roboto-Regular',
-    fontSize: 16,
-    color: Colors.neutral[800],
-    backgroundColor: Colors.white,
-    minHeight: 100,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.neutral[100],
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.neutral[300],
-    marginTop: 8,
   },
-  locationIcon: {
-    marginRight: 8,
-  },
-  locationText: {
+  location: {
     fontFamily: 'Roboto-Regular',
     fontSize: 14,
-    color: Colors.neutral[800],
+    color: Colors.primary[100],
+    marginLeft: 6,
   },
-  evidenceButtons: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  evidenceButton: {
+  content: {
     flex: 1,
+  },
+  contentContainer: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontFamily: 'Roboto-Bold',
+    fontSize: 18,
+    color: Colors.neutral[800],
+    marginBottom: 16,
+  },
+  typeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -8,
+    marginBottom: 24,
+  },
+  typeCard: {
+    width: '50%',
+    padding: 8,
+  },
+  selectedType: {
+    transform: [{ scale: 0.95 }],
+  },
+  iconContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 8,
+  },
+  typeLabel: {
+    fontFamily: 'Roboto-Medium',
+    fontSize: 14,
+    color: Colors.neutral[700],
+    textAlign: 'center',
+  },
+  mediaSection: {
+    marginBottom: 24,
+  },
+  mediaButtons: {
+    flexDirection: 'row',
+  },
+  mediaButton: {
+    flex: 1,
     backgroundColor: Colors.primary[50],
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
-    marginRight: 8,
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.primary[100],
+    borderColor: Colors.primary[200],
     borderStyle: 'dashed',
   },
-  evidenceButtonText: {
+  mediaButtonText: {
     fontFamily: 'Roboto-Medium',
     fontSize: 14,
-    color: Colors.primary[700],
+    color: Colors.primary[600],
     marginTop: 8,
-  },
-  anonymousContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.neutral[200],
-  },
-  anonymousTitle: {
-    fontFamily: 'Roboto-Medium',
-    fontSize: 16,
-    color: Colors.neutral[800],
-    marginBottom: 4,
-  },
-  anonymousDescription: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 14,
-    color: Colors.neutral[600],
-  },
-  anonymousIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    paddingHorizontal: 8,
-  },
-  anonymousIndicatorText: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 12,
-    color: Colors.neutral[600],
-    marginLeft: 4,
   },
   submitButton: {
     backgroundColor: Colors.primary[600],
-    borderRadius: 8,
-    paddingVertical: 16,
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  submitButtonPressed: {
-    backgroundColor: Colors.primary[700],
+    marginTop: 24,
   },
   submitButtonDisabled: {
-    backgroundColor: Colors.neutral[400],
-  },
-  submitIcon: {
-    marginRight: 8,
+    opacity: 0.7,
   },
   submitButtonText: {
     fontFamily: 'Roboto-Bold',
     fontSize: 16,
     color: Colors.white,
-  },
-  disclaimer: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 12,
-    color: Colors.neutral[500],
-    textAlign: 'center',
-    marginBottom: 40,
+    marginLeft: 8,
   },
 });
