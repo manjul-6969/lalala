@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Pressable } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { Shield, AlertTriangle } from 'lucide-react-native';
+import { Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
 
