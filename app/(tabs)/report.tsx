@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, Pressable, Platform } from 'react-native';
-import { Camera, MapPin, Shield, AlertTriangle } from 'lucide-react-native';
+import { Camera, MapPin, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/Colors';
