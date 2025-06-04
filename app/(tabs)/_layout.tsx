@@ -1,9 +1,21 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Chrome as Home, Bell, BookOpen, Shield, User } from 'lucide-react-native';
+import { Chrome as Home, Bell, MapPin, Shield, User } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
+import { useEffect } from 'react';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
 
 export default function TabLayout() {
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Prevent going back when using the tab navigation
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
@@ -42,20 +54,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="map"
+        options={{
+          title: 'Map',
+          tabBarIcon: ({ color, size }) => (
+            <MapPin size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="report"
         options={{
           title: 'Report',
           tabBarIcon: ({ color, size }) => (
             <Shield size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="resources"
-        options={{
-          title: 'Resources',
-          tabBarIcon: ({ color, size }) => (
-            <BookOpen size={size} color={color} />
           ),
         }}
       />
