@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
 import { RefreshControl } from 'react-native';
-import { MapPin, TriangleAlert as AlertTriangle, Info } from 'lucide-react-native';
+import {
+  MapPin,
+  TriangleAlert as AlertTriangle,
+  Info,
+  BookOpen,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import EmergencyButton from '@/components/EmergencyButton';
@@ -51,7 +56,7 @@ export default function HomeScreen() {
   };
 
   const dismissAlert = (id: string) => {
-    setAlerts(alerts.filter(alert => alert.id !== id));
+    setAlerts(alerts.filter((alert) => alert.id !== id));
   };
 
   const viewAlertDetails = (alert: AlertType) => {
@@ -91,10 +96,10 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Safety Alerts</Text>
-            <Pressable 
-              hitSlop={8} 
+            <Pressable
+              hitSlop={8}
               onPress={() => router.push('/alerts')}
-              style={({ pressed }) => pressed ? { opacity: 0.7 } : {}}
+              style={({ pressed }) => (pressed ? { opacity: 0.7 } : {})}
             >
               <Text style={styles.seeAll}>See All</Text>
             </Pressable>
@@ -128,12 +133,17 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.actionText}>Report Incident</Text>
             </Pressable>
-            
+
             <Pressable
               style={styles.actionButton}
               onPress={() => router.push('/resources')}
             >
-              <View style={[styles.actionIcon, { backgroundColor: Colors.primary[600] }]}>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: Colors.primary[600] },
+                ]}
+              >
                 <BookOpen size={24} color={Colors.white} />
               </View>
               <Text style={styles.actionText}>Safety Resources</Text>
