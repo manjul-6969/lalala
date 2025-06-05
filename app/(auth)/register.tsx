@@ -17,7 +17,7 @@ export default function RegisterScreen() {
       setLoading(true);
       setError(null);
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -29,7 +29,15 @@ export default function RegisterScreen() {
 
       if (signUpError) throw signUpError;
 
-      router.replace('/(tabs)');
+      // Create initial onboarding status
+      if (user) {
+        await supabase.from('onboarding_status').insert({
+          user_id: user.id,
+          onboarding_completed: false,
+        });
+      }
+
+      // The _layout.tsx will handle redirection to onboarding
     } catch (err: any) {
       setError(err.message);
     } finally {
