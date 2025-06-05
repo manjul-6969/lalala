@@ -1,6 +1,6 @@
 import { StyleSheet, Pressable, View, Text, Animated } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
-import { Shield, AlertTriangle } from 'lucide-react-native';
+import { Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/Colors';
