@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, Platform } from 'react-native';
-import { Camera, MapPin, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Pressable,
+  Platform,
+} from 'react-native';
+import {
+  Camera,
+  MapPin,
+  Shield,
+  TriangleAlert as AlertTriangle,
+} from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/Colors';
@@ -47,7 +59,7 @@ export default function ReportScreen() {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
-        
+
         if (address[0]) {
           const { street, city, region } = address[0];
           setLocation(`${street}, ${city}, ${region}`);
@@ -63,7 +75,7 @@ export default function ReportScreen() {
     }
 
     setIsSubmitting(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
@@ -84,9 +96,12 @@ export default function ReportScreen() {
         )}
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+      >
         <Text style={styles.sectionTitle}>What type of incident?</Text>
-        
+
         <View style={styles.typeGrid}>
           {INCIDENT_TYPES.map((type) => (
             <Pressable
@@ -98,10 +113,7 @@ export default function ReportScreen() {
               onPress={() => setSelectedType(type.id)}
             >
               <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: type.color },
-                ]}
+                style={[styles.iconContainer, { backgroundColor: type.color }]}
               >
                 <type.icon size={24} color={Colors.white} />
               </View>
@@ -117,7 +129,8 @@ export default function ReportScreen() {
               style={styles.mediaButton}
               onPress={async () => {
                 if (Platform.OS !== 'web') {
-                  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                  const { status } =
+                    await ImagePicker.requestCameraPermissionsAsync();
                   if (status === 'granted') {
                     const result = await ImagePicker.launchCameraAsync({
                       mediaTypes: ImagePicker.MediaTypeOptions.All,
