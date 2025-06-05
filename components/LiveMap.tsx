@@ -4,7 +4,7 @@ import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/Colors';
-import { MapPin, AlertTriangle, Users } from 'lucide-react-native';
+import { MapPin, TriangleAlert as AlertTriangle, Users } from 'lucide-react-native';
 
 type User = {
   user_id: string;
